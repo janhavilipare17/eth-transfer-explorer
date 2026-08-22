@@ -1,0 +1,333 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETH Transfer Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <style>
+    @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800&f[]=satoshi@500&display=swap');
+
+    :root {
+      --primary: #ffe17c;
+      --bg: #171e19;
+      --accent: #b7c6c2;
+      --ui: #ffffff;
+      --text: #000000;
+    }
+
+    body {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 500;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    .hard-shadow-sm {
+      box-shadow: 4px 4px 0px 0px #000000;
+    }
+
+    .hard-shadow-lg {
+      box-shadow: 8px 8px 0px 0px #000000;
+    }
+
+    .neo-btn {
+      transition: all 0.1s ease;
+      background-color: var(--text);
+      color: var(--ui);
+      border: 2px solid #000000;
+    }
+
+    .neo-btn:hover {
+      transform: translate(4px, 4px);
+      box-shadow: 0px 0px 0px 0px #000000 !important;
+    }
+
+    .neo-card {
+      border: 2px solid #000000;
+      border-radius: 12px;
+      background-color: var(--ui);
+    }
+
+    .table-row-stripe:nth-child(even) {
+      background-color: rgba(183, 198, 194, 0.15);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--text);
+      border: 2px solid var(--bg);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen flex flex-col" data-sd-id="1">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 h-20 bg-[#ffe17c] border-b-2 border-black flex items-center px-8 z-50" data-sd-id="2">
+      <div class="flex items-center gap-3" data-sd-id="3">
+        <div class="w-10 h-10 bg-black flex items-center justify-center rounded-md" data-sd-id="4">
+          <iconify-icon icon="lucide:layers" class="text-white text-2xl"></iconify-icon>
+        </div>
+        <h1 class="text-2xl uppercase" data-sd-id="5">ETH Transfer Explorer</h1>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="mt-20 p-8 max-w-7xl mx-auto w-full space-y-12" data-sd-id="6">
+      
+      <!-- Search Section -->
+      <section id="search-section" class="flex flex-col items-center py-12" data-sd-id="7">
+        <div class="w-full max-w-2xl flex gap-4" data-sd-id="8">
+          <div class="flex-1 relative" data-sd-id="9">
+            <input type="text" id="address-input" placeholder="0x..." class="w-full h-16 px-6 text-xl border-2 border-black rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#ffe17c] placeholder-gray-400" data-sd-id="10">
+          </div>
+          <button id="search-btn" class="neo-btn px-10 text-xl font-bold rounded-xl hard-shadow-sm flex items-center gap-2" data-sd-id="11">
+            SEARCH
+            <iconify-icon icon="lucide:search"></iconify-icon>
+          </button>
+        </div>
+      </section>
+
+      <!-- Error State (Hidden by default) -->
+      <section id="error-state" class="hidden" data-sd-id="12">
+        <div class="neo-card p-6 border-red-600 bg-red-50 hard-shadow-lg flex items-start gap-4" data-sd-id="13">
+          <iconify-icon icon="lucide:alert-circle" class="text-3xl text-red-600 mt-1"></iconify-icon>
+          <div data-sd-id="14">
+            <h3 class="text-xl text-red-600 mb-1" data-sd-id="15">Invalid Ethereum Address</h3>
+            <p class="text-black" id="error-message" data-sd-id="16">The address provided does not match the standard Ethereum format. Please check for typos and try again.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loading State -->
+      <section id="loading-state" class="hidden flex flex-col items-center justify-center py-20" data-sd-id="17">
+        <div class="animate-bounce mb-6" data-sd-id="18">
+          <div class="w-12 h-12 border-4 border-black border-t-[#ffe17c] rounded-full animate-spin" data-sd-id="19"></div>
+        </div>
+        <h2 class="text-2xl text-white tracking-widest" data-sd-id="20">FETCHING BLOCKCHAIN DATA...</h2>
+      </section>
+
+      <!-- Results Section -->
+      <div id="results-container" class="hidden space-y-10" data-sd-id="21">
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-sd-id="22">
+          <div class="neo-card p-6 hard-shadow-sm" data-sd-id="23">
+            <p class="text-sm uppercase tracking-wider mb-2 opacity-60" data-sd-id="24">Total Transfers</p>
+            <h3 class="text-4xl" id="stat-total">0</h3>
+          </div>
+          <div class="neo-card p-6 hard-shadow-sm" data-sd-id="26">
+            <p class="text-sm uppercase tracking-wider mb-2 opacity-60" data-sd-id="27">Sent</p>
+            <h3 class="text-4xl text-red-500" id="stat-sent">0</h3>
+          </div>
+          <div class="neo-card p-6 hard-shadow-sm" data-sd-id="29">
+            <p class="text-sm uppercase tracking-wider mb-2 opacity-60" data-sd-id="30">Received</p>
+            <h3 class="text-4xl text-green-600" id="stat-received">0</h3>
+          </div>
+          <div class="neo-card p-6 hard-shadow-sm" data-sd-id="32">
+            <p class="text-sm uppercase tracking-wider mb-2 opacity-60" data-sd-id="33">Unique Counterparties</p>
+            <h3 class="text-4xl" id="stat-unique">0</h3>
+          </div>
+        </div>
+
+        <!-- Categories Breakdown -->
+        <div class="flex flex-wrap gap-4" id="category-breakdown" data-sd-id="35">
+          <div class="neo-card py-3 px-6 bg-[#ffe17c] border-2 border-black flex items-center gap-3">
+            <span class="font-bold">External</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-external">0</span>
+          </div>
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+            <span class="font-bold">Internal</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-internal">0</span>
+          </div>
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+            <span class="font-bold">ERC20</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc20">0</span>
+          </div>
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+            <span class="font-bold">ERC721</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc721">0</span>
+          </div>
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+            <span class="font-bold">ERC1155</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc1155">0</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-sd-id="51">
+          <!-- Top Assets -->
+          <div class="lg:col-span-1" data-sd-id="52">
+            <div class="neo-card p-6 hard-shadow-lg h-full" data-sd-id="53">
+              <h2 class="text-2xl mb-6 uppercase border-b-2 border-black pb-4" data-sd-id="54">Top Assets</h2>
+              <ul class="space-y-4" id="top-assets-list" data-sd-id="55">
+              </ul>
+            </div>
+          </div>
+
+          <!-- Transaction Table -->
+          <div class="lg:col-span-2" data-sd-id="81">
+            <div class="neo-card hard-shadow-lg overflow-hidden" data-sd-id="82">
+              <div class="p-6 border-b-2 border-black flex justify-between items-center" data-sd-id="83">
+                <h2 class="text-2xl uppercase" data-sd-id="84">Transaction History</h2>
+              </div>
+              <div class="overflow-x-auto custom-scrollbar" style="max-height: 500px;" data-sd-id="86">
+                <table class="w-full text-left" data-sd-id="87">
+                  <thead class="bg-[#b7c6c2] border-b-2 border-black sticky top-0" data-sd-id="88">
+                    <tr data-sd-id="89">
+                      <th class="p-4 font-bold uppercase text-xs" data-sd-id="90">Date</th>
+                      <th class="p-4 font-bold uppercase text-xs" data-sd-id="91">Dir</th>
+                      <th class="p-4 font-bold uppercase text-xs" data-sd-id="92">Asset</th>
+                      <th class="p-4 font-bold uppercase text-xs" data-sd-id="93">Amount</th>
+                      <th class="p-4 font-bold uppercase text-xs" data-sd-id="94">Counterparty</th>
+                      <th class="p-4 font-bold uppercase text-xs" data-sd-id="95">TX Hash</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transaction-table-body" data-sd-id="96">
+                  </tbody>
+                </table>
+              </div>
+              <div class="p-4 border-t-2 border-black flex justify-center bg-gray-50" id="table-footer-note">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Vanilla JS dashboard logic
+    const addressInput = document.getElementById('address-input');
+    const searchBtn = document.getElementById('search-btn');
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const resultsContainer = document.getElementById('results-container');
+    const errorMessage = document.getElementById('error-message');
+
+    // Get references to all the DOM elements we need
+    const statTotal = document.getElementById('stat-total');
+    const statSent = document.getElementById('stat-sent');
+    const statReceived = document.getElementById('stat-received');
+    const statUnique = document.getElementById('stat-unique');
+    const catExternal = document.getElementById('cat-external');
+    const catInternal = document.getElementById('cat-internal');
+    const catERC20 = document.getElementById('cat-erc20');
+    const catERC721 = document.getElementById('cat-erc721');
+    const catERC1155 = document.getElementById('cat-erc1155');
+    const topAssetsList = document.getElementById('top-assets-list');
+    const transactionTableBody = document.getElementById('transaction-table-body');
+    const tableFooterNote = document.getElementById('table-footer-note');
+
+    // Add click handler on search button AND Enter keypress on address input
+    searchBtn.addEventListener('click', performSearch);
+    addressInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+
+    function performSearch() {
+      const address = addressInput.value.trim();
+      if (!address) return;
+
+      // Hide results/error, show loading
+      resultsContainer.classList.add('hidden');
+      errorState.classList.add('hidden');
+      loadingState.classList.remove('hidden');
+
+      // Fetch from the API
+      fetch(`http://localhost:3001/api/transfers/${address}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Hide loading, show results
+          loadingState.classList.add('hidden');
+          resultsContainer.classList.remove('hidden');
+          errorState.classList.add('hidden');
+
+          // Update summary stats
+          statTotal.textContent = data.summary.totalCount;
+          statSent.textContent = data.summary.sentCount;
+          statReceived.textContent = data.summary.receivedCount;
+          statUnique.textContent = data.summary.uniqueCounterparties;
+
+          // Update category breakdown
+          catExternal.textContent = data.summary.categoryBreakdown.external;
+          catInternal.textContent = data.summary.categoryBreakdown.internal;
+          catERC20.textContent = data.summary.categoryBreakdown.erc20;
+          catERC721.textContent = data.summary.categoryBreakdown.erc721;
+          catERC1155.textContent = data.summary.categoryBreakdown.erc1155;
+
+          // Build top assets list
+          topAssetsList.innerHTML = '';
+          data.summary.topAssets.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center py-2 border-b border-black rounded-lg';
+            li.innerHTML = `
+              <span>${item.asset}</span>
+              <span class="bg-black text-white text-xs rounded py-0.5 px-2">${item.count}</span>
+            `;
+            topAssetsList.appendChild(li);
+          });
+
+          // Build transaction table (limit to first 50)
+          transactionTableBody.innerHTML = '';
+          const transfers = data.transfers.slice(0, 50);
+          let showNote = false;
+
+          transfers.forEach(tx => {
+            const isReceived = tx.direction === 'received';
+            const row = document.createElement('tr');
+            row.className = 'table-row-stripe border-b border-black';
+            const date = tx.blockTimestamp ? tx.blockTimestamp.split('T')[0] : 'N/A';
+            const direction = tx.direction;
+            const directionClass = tx.direction === 'received' ? 'text-green-600' : 'text-red-500';
+            const amount = tx.amount !== null && tx.amount !== undefined ? tx.amount : '0';
+            const counterparty = tx.counterparty || 'N/A';
+            const hash = tx.hash || 'N/A';
+
+            row.innerHTML = `
+              <td class="p-4">${date}</td>
+              <td class="p-4 font-bold ${directionClass}">${direction}</td>
+              <td class="p-4">${tx.asset || 'NFT'}</td>
+              <td class="p-4">${amount}</td>
+              <td class="p-4">${counterparty}</td>
+              <td class="p-4 truncate" title="${hash}">${hash}</td>
+            `;
+            transactionTableBody.appendChild(row);
+          });
+
+          // If we capped at 50, show note
+          if (data.transfers.length > 50) {
+            showNote = true;
+            document.querySelector('#table-footer-note').textContent = `Showing 50 of ${data.transfers.length} total transfers - full history available via CLI export`;
+          } else {
+            document.querySelector('#table-footer-note').textContent = '';
+          }
+        })
+        .catch(error => {
+          // On fetch error only: hide loading, show error state
+          loadingState.classList.add('hidden');
+          errorState.classList.remove('hidden');
+          errorMessage.textContent = error.message || 'Failed to fetch transfer history';
+        });
+    }
+  </script>
+</body>
+</html>
