@@ -70,6 +70,12 @@
       border: 2px solid var(--bg);
       border-radius: 10px;
     }
+
+    /* Active badge style */
+    .active {
+      background-color: #ffe17c;
+      border: 2px solid #000000;
+    }
   </style>
 </head>
 <body>
@@ -144,26 +150,30 @@
 
         <!-- Categories Breakdown -->
         <div class="flex flex-wrap gap-4" id="category-breakdown" data-sd-id="35">
-          <div class="neo-card py-3 px-6 bg-[#ffe17c] border-2 border-black flex items-center gap-3">
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3" id="cat-external" >
             <span class="font-bold">External</span>
-            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-external">0</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-external-count">0</span>
           </div>
-          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3" id="cat-internal" >
             <span class="font-bold">Internal</span>
-            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-internal">0</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-internal-count">0</span>
           </div>
-          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3" id="cat-erc20" >
             <span class="font-bold">ERC20</span>
-            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc20">0</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc20-count">0</span>
           </div>
-          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3" id="cat-erc721" >
             <span class="font-bold">ERC721</span>
-            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc721">0</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc721-count">0</span>
           </div>
-          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3">
+          <div class="neo-card py-3 px-6 bg-white border-2 border-black flex items-center gap-3" id="cat-erc1155" >
             <span class="font-bold">ERC1155</span>
-            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc1155">0</span>
+            <span class="px-2 bg-black text-white text-xs rounded py-0.5" id="cat-erc1155-count">0</span>
           </div>
+        </div>
+
+        <div class="flex gap-2 mt-4" id="show-all-container" data-sd-id="41">
+          <button id="show-all-btn" class="neo-btn text-sm px-3 py-1 rounded-xl hard-shadow-sm" onclick="setFilter('all')">Show All</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-sd-id="51">
@@ -206,9 +216,7 @@
       </div>
     </main>
   </div>
-
   <script>
-    // Vanilla JS dashboard logic
     const addressInput = document.getElementById('address-input');
     const searchBtn = document.getElementById('search-btn');
     const loadingState = document.getElementById('loading-state');
@@ -216,7 +224,6 @@
     const resultsContainer = document.getElementById('results-container');
     const errorMessage = document.getElementById('error-message');
 
-    // Get references to all the DOM elements we need
     const statTotal = document.getElementById('stat-total');
     const statSent = document.getElementById('stat-sent');
     const statReceived = document.getElementById('stat-received');
@@ -226,28 +233,91 @@
     const catERC20 = document.getElementById('cat-erc20');
     const catERC721 = document.getElementById('cat-erc721');
     const catERC1155 = document.getElementById('cat-erc1155');
+    const catExternalCount = document.getElementById('cat-external-count');
+    const catInternalCount = document.getElementById('cat-internal-count');
+    const catERC20Count = document.getElementById('cat-erc20-count');
+    const catERC721Count = document.getElementById('cat-erc721-count');
+    const catERC1155Count = document.getElementById('cat-erc1155-count');
     const topAssetsList = document.getElementById('top-assets-list');
     const transactionTableBody = document.getElementById('transaction-table-body');
-    const tableFooterNote = document.getElementById('table-footer-note');
 
-    // Add click handler on search button AND Enter keypress on address input
-    searchBtn.addEventListener('click', performSearch);
-    addressInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        performSearch();
+    let storedTransfers = [];
+    let currentFilter = 'all';
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      const badges = [catExternal, catInternal, catERC20, catERC721, catERC1155];
+      badges.forEach(b => b.classList.remove('active'));
+
+      if (filter === 'external') catExternal.classList.add('active');
+      if (filter === 'internal') catInternal.classList.add('active');
+      if (filter === 'erc20') catERC20.classList.add('active');
+      if (filter === 'erc721') catERC721.classList.add('active');
+      if (filter === 'erc1155') catERC1155.classList.add('active');
+
+      renderTable(currentFilter);
+    }
+
+    function renderTable(filter) {
+      const filteredTransfers = storedTransfers.filter(tx => {
+        if (filter === 'all') return true;
+        return tx.category && tx.category.toLowerCase() === filter.toLowerCase();
+      });
+
+      const fragment = document.createDocumentFragment();
+
+      filteredTransfers.slice(0, 50).forEach(tx => {
+        const date = tx.blockTimestamp ? tx.blockTimestamp.split('T')[0] : 'N/A';
+        const direction = tx.direction;
+        const directionClass = tx.direction === 'received' ? 'text-green-600' : 'text-red-500';
+        const amount = tx.amount !== null && tx.amount !== undefined ? tx.amount : '0';
+        const counterparty = tx.counterparty || 'N/A';
+        const hash = tx.hash || 'N/A';
+
+        const tr = document.createElement('tr');
+        tr.className = 'table-row-stripe border-b border-black';
+        tr.innerHTML = `
+          <td class="p-4">${date}</td>
+          <td class="p-4 font-bold ${directionClass}">${direction}</td>
+          <td class="p-4">${tx.asset || 'NFT'}</td>
+          <td class="p-4">${amount}</td>
+          <td class="p-4">${counterparty}</td>
+          <td class="p-4 truncate" title="${hash}">${hash}</td>
+        `;
+        fragment.appendChild(tr);
+      });
+
+      transactionTableBody.innerHTML = '';
+      transactionTableBody.appendChild(fragment);
+
+      const footerNote = document.querySelector('#table-footer-note');
+      if (filteredTransfers.length > 50) {
+        footerNote.textContent = `Showing 50 of ${filteredTransfers.length} total transfers - full history available via CLI export`;
+      } else {
+        footerNote.textContent = '';
       }
-    });
+    }
+
+    function hideLoadingShowResults() {
+      loadingState.classList.add('hidden');
+      resultsContainer.classList.remove('hidden');
+      errorState.classList.add('hidden');
+    }
+
+    function hideLoadingShowError(error) {
+      loadingState.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      errorMessage.textContent = error.message || 'Failed to fetch transfer history';
+    }
 
     function performSearch() {
       const address = addressInput.value.trim();
       if (!address) return;
 
-      // Hide results/error, show loading
       resultsContainer.classList.add('hidden');
       errorState.classList.add('hidden');
       loadingState.classList.remove('hidden');
 
-      // Fetch from the API
       fetch(`http://localhost:3001/api/transfers/${address}`)
         .then(response => {
           if (!response.ok) {
@@ -256,25 +326,21 @@
           return response.json();
         })
         .then(data => {
-          // Hide loading, show results
-          loadingState.classList.add('hidden');
-          resultsContainer.classList.remove('hidden');
-          errorState.classList.add('hidden');
+          storedTransfers = data.transfers;
 
-          // Update summary stats
+          hideLoadingShowResults();
+
           statTotal.textContent = data.summary.totalCount;
           statSent.textContent = data.summary.sentCount;
           statReceived.textContent = data.summary.receivedCount;
           statUnique.textContent = data.summary.uniqueCounterparties;
 
-          // Update category breakdown
-          catExternal.textContent = data.summary.categoryBreakdown.external;
-          catInternal.textContent = data.summary.categoryBreakdown.internal;
-          catERC20.textContent = data.summary.categoryBreakdown.erc20;
-          catERC721.textContent = data.summary.categoryBreakdown.erc721;
-          catERC1155.textContent = data.summary.categoryBreakdown.erc1155;
+          catExternalCount.textContent = data.summary.categoryBreakdown.external;
+          catInternalCount.textContent = data.summary.categoryBreakdown.internal;
+          catERC20Count.textContent = data.summary.categoryBreakdown.erc20;
+          catERC721Count.textContent = data.summary.categoryBreakdown.erc721;
+          catERC1155Count.textContent = data.summary.categoryBreakdown.erc1155;
 
-          // Build top assets list
           topAssetsList.innerHTML = '';
           data.summary.topAssets.forEach(item => {
             const li = document.createElement('li');
@@ -286,48 +352,26 @@
             topAssetsList.appendChild(li);
           });
 
-          // Build transaction table (limit to first 50)
-          transactionTableBody.innerHTML = '';
-          const transfers = data.transfers.slice(0, 50);
-          let showNote = false;
-
-          transfers.forEach(tx => {
-            const isReceived = tx.direction === 'received';
-            const row = document.createElement('tr');
-            row.className = 'table-row-stripe border-b border-black';
-            const date = tx.blockTimestamp ? tx.blockTimestamp.split('T')[0] : 'N/A';
-            const direction = tx.direction;
-            const directionClass = tx.direction === 'received' ? 'text-green-600' : 'text-red-500';
-            const amount = tx.amount !== null && tx.amount !== undefined ? tx.amount : '0';
-            const counterparty = tx.counterparty || 'N/A';
-            const hash = tx.hash || 'N/A';
-
-            row.innerHTML = `
-              <td class="p-4">${date}</td>
-              <td class="p-4 font-bold ${directionClass}">${direction}</td>
-              <td class="p-4">${tx.asset || 'NFT'}</td>
-              <td class="p-4">${amount}</td>
-              <td class="p-4">${counterparty}</td>
-              <td class="p-4 truncate" title="${hash}">${hash}</td>
-            `;
-            transactionTableBody.appendChild(row);
-          });
-
-          // If we capped at 50, show note
-          if (data.transfers.length > 50) {
-            showNote = true;
-            document.querySelector('#table-footer-note').textContent = `Showing 50 of ${data.transfers.length} total transfers - full history available via CLI export`;
-          } else {
-            document.querySelector('#table-footer-note').textContent = '';
-          }
+          setFilter('external');
         })
         .catch(error => {
-          // On fetch error only: hide loading, show error state
-          loadingState.classList.add('hidden');
-          errorState.classList.remove('hidden');
-          errorMessage.textContent = error.message || 'Failed to fetch transfer history';
+          hideLoadingShowError(error);
         });
     }
+
+    searchBtn.addEventListener('click', performSearch);
+    addressInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+
+    catExternal.addEventListener('click', () => setFilter('external'));
+    catInternal.addEventListener('click', () => setFilter('internal'));
+    catERC20.addEventListener('click', () => setFilter('erc20'));
+    catERC721.addEventListener('click', () => setFilter('erc721'));
+    catERC1155.addEventListener('click', () => setFilter('erc1155'));
   </script>
+    
 </body>
 </html>
