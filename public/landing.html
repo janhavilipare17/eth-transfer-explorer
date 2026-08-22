@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETH Transfer Explorer</title>
+  <style>
+    @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800&f[]=satoshi@500&display=swap');
+
+    :root {
+      --primary: #ffe17c;
+      --bg: #171e19;
+      --accent: #b7c6c2;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Satoshi', sans-serif;
+      background-color: var(--bg);
+      color: #000000;
+      min-height: 100vh;
+      background-image: radial-gradient(circle, #2a332c 1px, transparent 1px);
+      background-size: 24px 24px;
+      padding: 60px 20px;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* NAV */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 50px;
+      color: var(--accent);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #ffffff;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border: 2px solid #000;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #000;
+    }
+
+    /* HERO CARD */
+    .card {
+      background-color: var(--primary);
+      border: 3px solid #000000;
+      box-shadow: 12px 12px 0px 0px #000000;
+      border-radius: 20px;
+      padding: 64px 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #000;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 28px;
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      font-size: 3.4rem;
+      line-height: 1.05;
+      margin-bottom: 22px;
+    }
+
+    .card p.sub {
+      font-size: 1.15rem;
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.55;
+      opacity: 0.85;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: #000000;
+      color: #ffffff;
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      text-decoration: none;
+      padding: 20px 44px;
+      border: 3px solid #000000;
+      border-radius: 14px;
+      box-shadow: 8px 8px 0px 0px #000000;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translate(4px, 4px);
+      box-shadow: 0px 0px 0px 0px #000000;
+    }
+
+    .features {
+      margin-top: 44px;
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .feature-pill {
+      background: #ffffff;
+      border: 2px solid #000000;
+      border-radius: 999px;
+      padding: 9px 18px;
+    }
+
+    /* MOCK BROWSER PREVIEW */
+    .mock-browser {
+      margin-top: 56px;
+      background: #ffffff;
+      border: 3px solid #000000;
+      border-radius: 16px;
+      box-shadow: 10px 10px 0px 0px #000000;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .mock-topbar {
+      background: #000000;
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .mock-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .mock-body {
+      padding: 24px;
+    }
+
+    .mock-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mock-stat {
+      border: 2px solid #000;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .mock-stat .label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      opacity: 0.5;
+      font-weight: 700;
+    }
+
+    .mock-stat .value {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+    }
+
+    .mock-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.8rem;
+    }
+
+    /* STATS ROW */
+    .proof-row {
+      margin-top: 50px;
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    .proof-item .num {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    .proof-item .lbl {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 40px 24px; }
+      h1 { font-size: 2.2rem; }
+      .mock-stats { grid-template-columns: repeat(2, 1fr); }
+      .proof-row { gap: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="nav">
+      <div class="logo">
+        <div class="logo-icon">⧉</div>
+        ETH Transfer Explorer
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="badge">POWERED BY ALCHEMY</span>
+      <h1>See Every Move<br>an Address Has Made</h1>
+      <p class="sub">Paste any Ethereum address and get its complete transfer history &mdash; ETH, tokens, and NFTs, sent and received, fully paginated with no truncation.</p>
+      <a href="index.html" class="btn">Launch Explorer &rarr;</a>
+      <div class="features">
+        <span class="feature-pill">All 5 Transfer Types</span>
+        <span class="feature-pill">Both Directions</span>
+        <span class="feature-pill">Zero Truncation</span>
+      </div>
+
+      <div class="mock-browser">
+        <div class="mock-topbar">
+          <div class="mock-dot" style="background:#ff5f57;"></div>
+          <div class="mock-dot" style="background:#febc2e;"></div>
+          <div class="mock-dot" style="background:#28c840;"></div>
+        </div>
+        <div class="mock-body">
+          <div class="mock-stats">
+            <div class="mock-stat">
+              <div class="label">Total</div>
+              <div class="value">1,701</div>
+            </div>
+            <div class="mock-stat">
+              <div class="label">Sent</div>
+              <div class="value" style="color:#ef4444;">10</div>
+            </div>
+            <div class="mock-stat">
+              <div class="label">Received</div>
+              <div class="value" style="color:#16a34a;">1,691</div>
+            </div>
+            <div class="mock-stat">
+              <div class="label">Unique</div>
+              <div class="value">646</div>
+            </div>
+          </div>
+          <div class="mock-row"><span>2016-06-08</span><span style="color:#16a34a;font-weight:700;">received</span><span>ETH</span></div>
+          <div class="mock-row"><span>2017-03-18</span><span style="color:#16a34a;font-weight:700;">received</span><span>DDT</span></div>
+          <div class="mock-row" style="border-bottom:none;"><span>2026-08-20</span><span style="color:#ef4444;font-weight:700;">sent</span><span>USDT</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proof-row">
+      <div class="proof-item">
+        <div class="num">500K+</div>
+        <div class="lbl">Transfers Tested</div>
+      </div>
+      <div class="proof-item">
+        <div class="num">100%</div>
+        <div class="lbl">Pagination Coverage</div>
+      </div>
+      <div class="proof-item">
+        <div class="num">5</div>
+        <div class="lbl">Transfer Categories</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

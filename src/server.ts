@@ -10,7 +10,7 @@ const app = express();
 const PORT = 3001;
 
 // Serve static files from public directory (serves index.html at root)
-app.use(express.static('public'));
+app.use(express.static('public', { index: 'landing.html' }));
 
 // Enable CORS for all routes
 app.use(cors());
