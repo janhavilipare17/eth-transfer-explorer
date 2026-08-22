@@ -316,6 +316,44 @@ async function main() {
       (t) => t.direction === "received"
     ).length}`
   );
+
+  // === Summary Stats ===
+  const categoryCounts: Record<string, number> = {
+    external: parsed.filter((t) => t.category === "external").length,
+    internal: parsed.filter((t) => t.category === "internal").length,
+    erc20: parsed.filter((t) => t.category === "erc20").length,
+    erc721: parsed.filter((t) => t.category === "erc721").length,
+    erc1155: parsed.filter((t) => t.category === "erc1155").length,
+  };
+  const topAssets: Map<string, number> = new Map();
+  for (const t of parsed) {
+    if (t.category !== "external" && t.category !== "internal") {
+      topAssets.set(t.asset, (topAssets.get(t.asset) || 0) + 1);
+    }
+  }
+  const sortedAssets = Array.from(topAssets.entries()).sort(
+    (a, b) => b[1] - a[1]
+  );
+  const uniqueCounterparties = new Set(parsed.map((t) => t.counterparty));
+
+  previewLines.push(`\n=== Summary Stats ===`);
+  previewLines.push(
+    `  External: ${categoryCounts.external}  Internal: ${categoryCounts.internal}  ERC20: ${categoryCounts.erc20}  ERC721: ${categoryCounts.erc721}  ERC1155: ${categoryCounts.erc1155}`
+  );
+  previewLines.push(
+    `  Top assets: ${[
+      sortedAssets.length > 0 ? sortedAssets[0][0] + ` (${sortedAssets[0][1]})` : ``,
+      sortedAssets.length > 1 ? sortedAssets[1][0] + ` (${sortedAssets[1][1]})` : ``,
+      sortedAssets.length > 2 ? sortedAssets[2][0] + ` (${sortedAssets[2][1]})` : ``,
+      sortedAssets.length > 3 ? sortedAssets[3][0] + ` (${sortedAssets[3][1]})` : ``,
+      sortedAssets.length > 4 ? sortedAssets[4][0] + ` (${sortedAssets[4][1]})` : ``,
+    ]
+      .filter((s) => s)
+      .join(", ")}`
+  );
+  previewLines.push(
+    `  Unique counterparties: ${uniqueCounterparties.size}`
+  );
   previewLines.push(
     `\nFull history written to: ${outputFile}`
   );
