@@ -97,14 +97,16 @@ This address has tens of thousands of transactions across multiple ERC-20s and N
 
 ## Project Structure
 
+```
 wallet-explorer/
 ├── src/
-│ ├── lib.ts # Core fetching/pagination/retry logic
-│ ├── index.ts # CLI entry point
-│ └── server.ts # Express API + static file serving
+│   ├── lib.ts          # Core fetching/pagination/retry logic
+│   ├── index.ts        # CLI entry point
+│   └── server.ts       # Express API + static file serving
 ├── public/
-│ ├── landing.html # Intro page
-│ └── index.html # Dashboard
+│   ├── landing.html    # Intro page
+│   └── index.html      # Dashboard
 ├── .env.example
 ├── package.json
 └── tsconfig.json
+```
