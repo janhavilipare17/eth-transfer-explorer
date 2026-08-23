@@ -245,18 +245,26 @@
     let currentFilter = 'all';
 
     function setFilter(filter) {
-      currentFilter = filter;
-      const badges = [catExternal, catInternal, catERC20, catERC721, catERC1155];
-      badges.forEach(b => b.classList.remove('active'));
+  currentFilter = filter;
+  const badges = [catExternal, catInternal, catERC20, catERC721, catERC1155];
+  badges.forEach(b => {
+    b.style.backgroundColor = '#ffffff';
+  });
 
-      if (filter === 'external') catExternal.classList.add('active');
-      if (filter === 'internal') catInternal.classList.add('active');
-      if (filter === 'erc20') catERC20.classList.add('active');
-      if (filter === 'erc721') catERC721.classList.add('active');
-      if (filter === 'erc1155') catERC1155.classList.add('active');
+  const activeMap = {
+    external: catExternal,
+    internal: catInternal,
+    erc20: catERC20,
+    erc721: catERC721,
+    erc1155: catERC1155
+  };
 
-      renderTable(currentFilter);
-    }
+  if (activeMap[filter]) {
+    activeMap[filter].style.backgroundColor = '#ffe17c';
+  }
+
+  renderTable(currentFilter);
+}
 
     function renderTable(filter) {
       const filteredTransfers = storedTransfers.filter(tx => {
