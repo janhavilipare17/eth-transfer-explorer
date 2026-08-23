@@ -21,14 +21,6 @@ flowchart TD
     C --> D[Alchemy API<br/>getAssetTransfers]
     B --> E[public/*.html<br/>landing + dashboard]
 ```
-
-- **`src/lib.ts`** — shared core logic: paginated fetching, retry/backoff, address validation, category/direction handling. Used by both entry points.
-- **`src/index.ts`** — CLI entry point. Prints console preview + writes full history to a file.
-- **`src/server.ts`** — Express API (`GET /api/transfers/:address`) + serves the static dashboard.
-- **`public/landing.html`** — intro/marketing page.
-- **`public/index.html`** — interactive dashboard (search, stats, category filters, transaction table).
-
-
 - **`src/lib.ts`** — shared core logic: paginated fetching, retry/backoff, address validation, category/direction handling. Used by both entry points.
 - **`src/index.ts`** — CLI entry point. Prints console preview + writes full history to a file.
 - **`src/server.ts`** — Express API (`GET /api/transfers/:address`) + serves the static dashboard.
